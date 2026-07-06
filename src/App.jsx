@@ -682,9 +682,6 @@ export default function TechadeHQ() {
           const history = focusLog
             .filter((x) => x.user_id === f.user_id)
             .slice(0, 7);
-          const theirProjects = (projects || [])
-            .filter((p) => p.updated_by === f.name)
-            .slice(0, 3);
           return (
             <div
               key={f.user_id}
@@ -741,26 +738,6 @@ export default function TechadeHQ() {
                       — {h.text || "—"}
                     </div>
                   ))}
-
-                  {theirProjects.length > 0 && (
-                    <>
-                      <div style={{ ...S.fieldLabel, marginTop: 10 }}>
-                        Project yang terakhir dia pegang
-                      </div>
-                      {theirProjects.map((p) => (
-                        <div
-                          key={p.id}
-                          style={{ fontSize: 13, lineHeight: 1.6 }}
-                        >
-                          <b>{p.name}</b>
-                          <span style={{ color: "var(--faint)" }}>
-                            {" "}
-                            · {timeAgo(p.updated_at)}
-                          </span>
-                        </div>
-                      ))}
-                    </>
-                  )}
                 </div>
               )}
             </div>
