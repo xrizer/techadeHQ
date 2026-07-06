@@ -227,6 +227,7 @@ export default function TechadeHQ() {
   const [projects, setProjects] = useState(null);
   const [focuses, setFocuses] = useState([]);
   const [myFocus, setMyFocus] = useState("");
+  const [focusSaved, setFocusSaved] = useState(false);
   const [newProject, setNewProject] = useState("");
   const [error, setError] = useState(null);
   const [dark, setDark] = useState(() => {
@@ -306,7 +307,11 @@ export default function TechadeHQ() {
       ...fs.filter((x) => x.user_id !== session.user.id),
       row,
     ]);
-    await supabase.from("focus").upsert(row);
+    const { error } = await supabase.from("focus").upsert(row);
+    if (!error) {
+      setFocusSaved(true);
+      setTimeout(() => setFocusSaved(false), 1500);
+    }
   };
 
   // ---------- projects ----------
@@ -444,6 +449,9 @@ export default function TechadeHQ() {
             />
             <button style={{ ...S.addBtn, width: 60 }} onClick={saveFocus}>OK</button>
           </div>
+          {focusSaved && (
+            <div style={{ fontSize: 12, color: "var(--green)", marginTop: 6 }}>✓ tersimpan</div>
+          )}
         </div>
 
         {/* founder lain */}
