@@ -9,12 +9,23 @@ const localToday = () => {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 };
 
-const STATUS_ORDER = ["jalan", "nunggu", "stuck", "kelar"];
+const STATUS_ORDER = ["penawaran", "deal", "maintenance"];
 const STATUS_META = {
-  jalan: { label: "● jalan", color: "var(--green)", border: "var(--green-border)" },
-  nunggu: { label: "◐ nunggu", color: "var(--janji-ink)", border: "var(--janji-border)" },
-  stuck: { label: "✕ stuck", color: "var(--red)", border: "var(--red)" },
-  kelar: { label: "✓ kelar", color: "var(--muted)", border: "var(--border)" },
+  penawaran: {
+    label: "◐ penawaran",
+    color: "var(--janji-ink)",
+    border: "var(--janji-border)",
+  },
+  deal: {
+    label: "● deal",
+    color: "var(--green)",
+    border: "var(--green-border)",
+  },
+  maintenance: {
+    label: "🔧 maintenance",
+    color: "var(--muted2)",
+    border: "var(--border2)",
+  },
 };
 
 const timeAgo = (ts) => {
@@ -33,26 +44,52 @@ const usernameOf = (session) =>
 
 const THEMES = {
   light: {
-    "--bg": "#F6F4EF", "--ink": "#2B2822", "--muted": "#8A8578",
-    "--muted2": "#6E6A5E", "--faint": "#A5A093", "--accent": "#E4572E",
-    "--accent-border": "#F0C4B4", "--accent-bg": "#FFF4EC",
-    "--border": "#E3DFD4", "--border2": "#D9D4C8", "--badge": "#E8E4DA",
-    "--card": "#FFFFFF", "--card2": "#FDFCFA",
-    "--green-bg": "#EDF6EE", "--green-border": "#BFDCC2",
-    "--green": "#3E7A46", "--green-dark": "#2E5934",
-    "--janji-bg": "#FBF6E9", "--janji-border": "#E6D9B8", "--janji-ink": "#7A5C1E",
-    "--red": "#C0392B", "--red-bg": "#FDF1EF",
+    "--bg": "#F6F4EF",
+    "--ink": "#2B2822",
+    "--muted": "#8A8578",
+    "--muted2": "#6E6A5E",
+    "--faint": "#A5A093",
+    "--accent": "#E4572E",
+    "--accent-border": "#F0C4B4",
+    "--accent-bg": "#FFF4EC",
+    "--border": "#E3DFD4",
+    "--border2": "#D9D4C8",
+    "--badge": "#E8E4DA",
+    "--card": "#FFFFFF",
+    "--card2": "#FDFCFA",
+    "--green-bg": "#EDF6EE",
+    "--green-border": "#BFDCC2",
+    "--green": "#3E7A46",
+    "--green-dark": "#2E5934",
+    "--janji-bg": "#FBF6E9",
+    "--janji-border": "#E6D9B8",
+    "--janji-ink": "#7A5C1E",
+    "--red": "#C0392B",
+    "--red-bg": "#FDF1EF",
   },
   dark: {
-    "--bg": "#16140F", "--ink": "#EDEAE0", "--muted": "#9C968A",
-    "--muted2": "#B3AC9E", "--faint": "#6E6A5E", "--accent": "#F26B3F",
-    "--accent-border": "#5C2E1E", "--accent-bg": "#2A1B13",
-    "--border": "#34302A", "--border2": "#3D3931", "--badge": "#34302A",
-    "--card": "#211E18", "--card2": "#26231C",
-    "--green-bg": "#17241A", "--green-border": "#2C4A33",
-    "--green": "#8FCF9A", "--green-dark": "#3E8A4C",
-    "--janji-bg": "#231E10", "--janji-border": "#4C4223", "--janji-ink": "#D9B25C",
-    "--red": "#E0604F", "--red-bg": "#2C1712",
+    "--bg": "#16140F",
+    "--ink": "#EDEAE0",
+    "--muted": "#9C968A",
+    "--muted2": "#B3AC9E",
+    "--faint": "#6E6A5E",
+    "--accent": "#F26B3F",
+    "--accent-border": "#5C2E1E",
+    "--accent-bg": "#2A1B13",
+    "--border": "#34302A",
+    "--border2": "#3D3931",
+    "--badge": "#34302A",
+    "--card": "#211E18",
+    "--card2": "#26231C",
+    "--green-bg": "#17241A",
+    "--green-border": "#2C4A33",
+    "--green": "#8FCF9A",
+    "--green-dark": "#3E8A4C",
+    "--janji-bg": "#231E10",
+    "--janji-border": "#4C4223",
+    "--janji-ink": "#D9B25C",
+    "--red": "#E0604F",
+    "--red-bg": "#2C1712",
   },
 };
 
@@ -63,7 +100,11 @@ function EditableText({ value, onSave, style, placeholder }) {
   if (!editing)
     return (
       <div
-        style={{ ...style, cursor: "text", ...(value ? {} : { color: "var(--faint)", fontStyle: "italic" }) }}
+        style={{
+          ...style,
+          cursor: "text",
+          ...(value ? {} : { color: "var(--faint)", fontStyle: "italic" }),
+        }}
         title="Tap untuk edit"
         onClick={() => {
           setDraft(value || "");
@@ -162,12 +203,23 @@ function Login({ themeVars }) {
   };
 
   return (
-    <div style={{ ...S.page, ...themeVars, display: "flex", alignItems: "center", justifyContent: "center" }}>
+    <div
+      style={{
+        ...S.page,
+        ...themeVars,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
       <div style={{ width: "100%", maxWidth: 340, padding: 16 }}>
         <div style={S.eyebrow}>Founder only</div>
         <h1 style={{ ...S.h1, marginBottom: 18 }}>Techade HQ</h1>
         <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
-          {[["login", "Masuk"], ["register", "Daftar"]].map(([k, label]) => (
+          {[
+            ["login", "Masuk"],
+            ["register", "Daftar"],
+          ].map(([k, label]) => (
             <button
               key={k}
               style={{
@@ -176,7 +228,9 @@ function Login({ themeVars }) {
                 padding: "8px 0",
                 fontSize: 13,
                 fontWeight: 700,
-                ...(mode === k ? { borderColor: "var(--accent)", color: "var(--accent)" } : {}),
+                ...(mode === k
+                  ? { borderColor: "var(--accent)", color: "var(--accent)" }
+                  : {}),
               }}
               onClick={() => {
                 setMode(k);
@@ -189,7 +243,12 @@ function Login({ themeVars }) {
           ))}
         </div>
         <input
-          style={{ ...S.input, width: "100%", boxSizing: "border-box", marginBottom: 8 }}
+          style={{
+            ...S.input,
+            width: "100%",
+            boxSizing: "border-box",
+            marginBottom: 8,
+          }}
           placeholder="Username"
           autoCapitalize="none"
           value={username}
@@ -197,7 +256,12 @@ function Login({ themeVars }) {
         />
         <input
           type="password"
-          style={{ ...S.input, width: "100%", boxSizing: "border-box", marginBottom: 12 }}
+          style={{
+            ...S.input,
+            width: "100%",
+            boxSizing: "border-box",
+            marginBottom: 12,
+          }}
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
@@ -205,16 +269,35 @@ function Login({ themeVars }) {
         />
         {mode === "register" && (
           <input
-            style={{ ...S.input, width: "100%", boxSizing: "border-box", marginBottom: 12 }}
+            style={{
+              ...S.input,
+              width: "100%",
+              boxSizing: "border-box",
+              marginBottom: 12,
+            }}
             placeholder="Invite code (minta ke Sol)"
             value={invite}
             onChange={(e) => setInvite(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && submit()}
           />
         )}
-        {err && <div style={{ color: "var(--red)", fontSize: 13, marginBottom: 10 }}>{err}</div>}
-        {info && <div style={{ color: "var(--green)", fontSize: 13, marginBottom: 10 }}>{info}</div>}
-        <button style={{ ...S.primaryBtn, opacity: busy ? 0.6 : 1 }} disabled={busy} onClick={submit}>
+        {err && (
+          <div style={{ color: "var(--red)", fontSize: 13, marginBottom: 10 }}>
+            {err}
+          </div>
+        )}
+        {info && (
+          <div
+            style={{ color: "var(--green)", fontSize: 13, marginBottom: 10 }}
+          >
+            {info}
+          </div>
+        )}
+        <button
+          style={{ ...S.primaryBtn, opacity: busy ? 0.6 : 1 }}
+          disabled={busy}
+          onClick={submit}
+        >
           {busy ? "Sebentar…" : mode === "register" ? "Daftar →" : "Masuk →"}
         </button>
       </div>
@@ -265,7 +348,9 @@ export default function TechadeHQ() {
   // ---------- auth ----------
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) =>
+      setSession(s),
+    );
     return () => sub.subscription.unsubscribe();
   }, []);
 
@@ -332,7 +417,9 @@ export default function TechadeHQ() {
       updated_by: usernameOf(session),
       updated_at: new Date().toISOString(),
     };
-    setProjects((ps) => ps.map((p) => (p.id === id ? { ...p, ...withMeta } : p)));
+    setProjects((ps) =>
+      ps.map((p) => (p.id === id ? { ...p, ...withMeta } : p)),
+    );
     await supabase.from("projects").update(withMeta).eq("id", id);
   };
 
@@ -343,7 +430,8 @@ export default function TechadeHQ() {
   };
 
   const cycleStatus = (p) => {
-    const next = STATUS_ORDER[(STATUS_ORDER.indexOf(p.status) + 1) % STATUS_ORDER.length];
+    const next =
+      STATUS_ORDER[(STATUS_ORDER.indexOf(p.status) + 1) % STATUS_ORDER.length];
     patchProject(p.id, { status: next });
   };
 
@@ -360,7 +448,15 @@ export default function TechadeHQ() {
   // ---------- render ----------
   if (session === undefined)
     return (
-      <div style={{ ...S.page, ...themeVars, display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div
+        style={{
+          ...S.page,
+          ...themeVars,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
         <span style={{ color: "var(--muted)", fontSize: 14 }}>Memuat…</span>
       </div>
     );
@@ -369,11 +465,20 @@ export default function TechadeHQ() {
 
   if (error)
     return (
-      <div style={{ ...S.page, ...themeVars, display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div
+        style={{
+          ...S.page,
+          ...themeVars,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
         <div style={{ ...S.focusCard, maxWidth: 480 }}>
           <div style={S.eyebrow}>Gagal terhubung</div>
           <div style={{ fontSize: 14, lineHeight: 1.5 }}>
-            {error} — cek env Supabase & apakah <code>setup.sql</code> sudah dijalankan.
+            {error} — cek env Supabase & apakah <code>setup.sql</code> sudah
+            dijalankan.
           </div>
         </div>
       </div>
@@ -391,22 +496,38 @@ export default function TechadeHQ() {
     .filter((f) => f.user_id !== session.user.id)
     .sort((a, b) => (a.name < b.name ? -1 : 1));
 
-  const active = (projects || []).filter((p) => p.status !== "kelar");
-  const doneP = (projects || []).filter((p) => p.status === "kelar");
+  const sorted = projects || [];
 
   return (
     <div style={{ ...S.page, ...themeVars }}>
       <div style={S.wrap}>
         {/* header */}
-        <div style={{ marginBottom: 20, display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+        <div
+          style={{
+            marginBottom: 20,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "flex-end",
+          }}
+        >
           <div>
             <div style={S.eyebrow}>{dateLabel}</div>
             <h1 style={S.h1}>Techade HQ</h1>
           </div>
           <div style={{ display: "flex", gap: 6 }}>
-            <button style={S.iconBtn} onClick={toggleTheme}>{dark ? "☀️" : "🌙"}</button>
-            <button style={S.iconBtn} onClick={() => setShowPassForm((v) => !v)}>🔑</button>
-            <button style={{ ...S.iconBtn, fontSize: 13, color: "var(--muted)" }} onClick={() => supabase.auth.signOut()}>
+            <button style={S.iconBtn} onClick={toggleTheme}>
+              {dark ? "☀️" : "🌙"}
+            </button>
+            <button
+              style={S.iconBtn}
+              onClick={() => setShowPassForm((v) => !v)}
+            >
+              🔑
+            </button>
+            <button
+              style={{ ...S.iconBtn, fontSize: 13, color: "var(--muted)" }}
+              onClick={() => supabase.auth.signOut()}
+            >
               keluar
             </button>
           </div>
@@ -423,7 +544,12 @@ export default function TechadeHQ() {
                 onChange={(e) => setNewPass(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && changePassword()}
               />
-              <button style={{ ...S.addBtn, width: 60 }} onClick={changePassword}>OK</button>
+              <button
+                style={{ ...S.addBtn, width: 60 }}
+                onClick={changePassword}
+              >
+                OK
+              </button>
             </div>
           </div>
         )}
@@ -442,7 +568,9 @@ export default function TechadeHQ() {
               onChange={(e) => setMyFocus(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && saveFocus()}
             />
-            <button style={{ ...S.addBtn, width: 60 }} onClick={saveFocus}>OK</button>
+            <button style={{ ...S.addBtn, width: 60 }} onClick={saveFocus}>
+              OK
+            </button>
           </div>
         </div>
 
@@ -450,14 +578,21 @@ export default function TechadeHQ() {
         {others.map((f) => {
           const stale = f.date !== today;
           return (
-            <div key={f.user_id} style={{ ...S.card, ...(stale ? { opacity: 0.5 } : {}) }}>
+            <div
+              key={f.user_id}
+              style={{ ...S.card, ...(stale ? { opacity: 0.5 } : {}) }}
+            >
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={S.personName}>{f.name}</div>
                 <div style={{ fontSize: 15, marginTop: 3, lineHeight: 1.4 }}>
-                  {f.text || <span style={{ color: "var(--faint)" }}>belum diisi</span>}
+                  {f.text || (
+                    <span style={{ color: "var(--faint)" }}>belum diisi</span>
+                  )}
                 </div>
                 {stale && f.date && (
-                  <div style={S.metaHint}>terakhir update {f.date} — belum isi hari ini</div>
+                  <div style={S.metaHint}>
+                    terakhir update {f.date} — belum isi hari ini
+                  </div>
                 )}
               </div>
             </div>
@@ -478,15 +613,17 @@ export default function TechadeHQ() {
             onChange={(e) => setNewProject(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && addProject()}
           />
-          <button style={{ ...S.addBtn, width: 46 }} onClick={addProject}>+</button>
+          <button style={{ ...S.addBtn, width: 46 }} onClick={addProject}>
+            +
+          </button>
         </div>
 
         {projects === null && <div style={S.empty}>Memuat…</div>}
 
-        {[...active, ...doneP].map((p) => {
-          const m = STATUS_META[p.status] || STATUS_META.jalan;
+        {sorted.map((p) => {
+          const m = STATUS_META[p.status] || STATUS_META.penawaran;
           return (
-            <div key={p.id} style={{ ...S.projectCard, ...(p.status === "kelar" ? { opacity: 0.55 } : {}) }}>
+            <div key={p.id} style={S.projectCard}>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <EditableText
@@ -502,7 +639,9 @@ export default function TechadeHQ() {
                 >
                   {m.label}
                 </button>
-                <button style={S.ghostSm} onClick={() => removeProject(p.id)}>✕</button>
+                <button style={S.ghostSm} onClick={() => removeProject(p.id)}>
+                  ✕
+                </button>
               </div>
 
               <div style={{ marginTop: 10 }}>
@@ -526,17 +665,21 @@ export default function TechadeHQ() {
               </div>
 
               <div style={S.metaHint}>
-                update {timeAgo(p.updated_at)}{p.updated_by ? ` · ${p.updated_by}` : ""}
+                update {timeAgo(p.updated_at)}
+                {p.updated_by ? ` · ${p.updated_by}` : ""}
               </div>
             </div>
           );
         })}
         {projects !== null && projects.length === 0 && (
-          <div style={S.empty}>Belum ada project. Tambahin yang lagi jalan.</div>
+          <div style={S.empty}>
+            Belum ada project. Tambahin yang lagi jalan.
+          </div>
         )}
 
         <div style={S.footer}>
-          Update "sampe mana" & "next step" tiap ada progres — biar gak ada yang nanya-nanya lagi.
+          Update "sampe mana" & "next step" tiap ada progres — biar gak ada yang
+          nanya-nanya lagi.
         </div>
       </div>
     </div>
@@ -547,74 +690,135 @@ const S = {
   page: {
     minHeight: "100vh",
     background: "var(--bg)",
-    fontFamily: "'Avenir Next', 'Segoe UI', system-ui, -apple-system, sans-serif",
+    fontFamily:
+      "'Avenir Next', 'Segoe UI', system-ui, -apple-system, sans-serif",
     color: "var(--ink)",
     padding: "24px 16px 60px",
   },
   wrap: { maxWidth: 620, margin: "0 auto" },
   eyebrow: {
-    fontSize: 12, letterSpacing: "0.12em", textTransform: "uppercase",
-    color: "var(--muted)", marginBottom: 4,
+    fontSize: 12,
+    letterSpacing: "0.12em",
+    textTransform: "uppercase",
+    color: "var(--muted)",
+    marginBottom: 4,
   },
   h1: { fontSize: 30, fontWeight: 700, margin: 0, letterSpacing: "-0.02em" },
   sectionHead: {
-    fontSize: 13, fontWeight: 700, letterSpacing: "0.08em",
-    textTransform: "uppercase", color: "var(--muted2)", marginBottom: 10,
+    fontSize: 13,
+    fontWeight: 700,
+    letterSpacing: "0.08em",
+    textTransform: "uppercase",
+    color: "var(--muted2)",
+    marginBottom: 10,
   },
   iconBtn: {
-    background: "var(--card)", border: "1px solid var(--border)",
-    borderRadius: 10, padding: "8px 12px", fontSize: 16, cursor: "pointer", lineHeight: 1,
+    background: "var(--card)",
+    border: "1px solid var(--border)",
+    borderRadius: 10,
+    padding: "8px 12px",
+    fontSize: 16,
+    cursor: "pointer",
+    lineHeight: 1,
   },
   box: {
-    background: "var(--card)", border: "1px solid var(--border)",
-    borderRadius: 14, padding: "12px 14px",
+    background: "var(--card)",
+    border: "1px solid var(--border)",
+    borderRadius: 14,
+    padding: "12px 14px",
   },
   input: {
-    padding: "11px 14px", borderRadius: 10,
-    border: "1px solid var(--border2)", background: "var(--card)",
-    fontSize: 16, outline: "none", color: "var(--ink)",
+    padding: "11px 14px",
+    borderRadius: 10,
+    border: "1px solid var(--border2)",
+    background: "var(--card)",
+    fontSize: 16,
+    outline: "none",
+    color: "var(--ink)",
   },
   addBtn: {
-    borderRadius: 10, border: "none", background: "var(--ink)",
-    color: "var(--bg)", fontSize: 16, fontWeight: 700, cursor: "pointer",
+    borderRadius: 10,
+    border: "none",
+    background: "var(--ink)",
+    color: "var(--bg)",
+    fontSize: 16,
+    fontWeight: 700,
+    cursor: "pointer",
   },
   primaryBtn: {
-    background: "var(--accent)", color: "#fff", border: "none",
-    borderRadius: 10, padding: "10px 16px", fontSize: 15, fontWeight: 600,
-    cursor: "pointer", width: "100%",
+    background: "var(--accent)",
+    color: "#fff",
+    border: "none",
+    borderRadius: 10,
+    padding: "10px 16px",
+    fontSize: 15,
+    fontWeight: 600,
+    cursor: "pointer",
+    width: "100%",
   },
   focusCard: {
-    background: "var(--accent-bg)", border: "1px solid var(--accent-border)",
-    borderRadius: 14, padding: "12px 14px",
+    background: "var(--accent-bg)",
+    border: "1px solid var(--accent-border)",
+    borderRadius: 14,
+    padding: "12px 14px",
   },
   personName: {
-    fontSize: 12, fontWeight: 700, letterSpacing: "0.08em",
-    textTransform: "uppercase", color: "var(--muted2)",
+    fontSize: 12,
+    fontWeight: 700,
+    letterSpacing: "0.08em",
+    textTransform: "uppercase",
+    color: "var(--muted2)",
   },
   card: {
-    background: "var(--card)", border: "1px solid var(--border)",
-    borderRadius: 12, padding: "12px 14px", marginBottom: 8,
-    display: "flex", alignItems: "center", gap: 10,
+    background: "var(--card)",
+    border: "1px solid var(--border)",
+    borderRadius: 12,
+    padding: "12px 14px",
+    marginBottom: 8,
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
   },
   projectCard: {
-    background: "var(--card)", border: "1px solid var(--border)",
-    borderRadius: 14, padding: "14px 16px", marginBottom: 10,
+    background: "var(--card)",
+    border: "1px solid var(--border)",
+    borderRadius: 14,
+    padding: "14px 16px",
+    marginBottom: 10,
   },
   pill: {
-    background: "transparent", border: "1px solid var(--border)",
-    borderRadius: 20, padding: "5px 12px", fontSize: 12, fontWeight: 700,
-    cursor: "pointer", whiteSpace: "nowrap",
+    background: "transparent",
+    border: "1px solid var(--border)",
+    borderRadius: 20,
+    padding: "5px 12px",
+    fontSize: 12,
+    fontWeight: 700,
+    cursor: "pointer",
+    whiteSpace: "nowrap",
   },
   ghostSm: {
-    background: "transparent", color: "var(--muted)",
-    border: "1px solid var(--border)", borderRadius: 8,
-    padding: "5px 9px", fontSize: 12, cursor: "pointer",
+    background: "transparent",
+    color: "var(--muted)",
+    border: "1px solid var(--border)",
+    borderRadius: 8,
+    padding: "5px 9px",
+    fontSize: 12,
+    cursor: "pointer",
   },
   fieldLabel: {
-    fontSize: 11, fontWeight: 700, letterSpacing: "0.08em",
-    textTransform: "uppercase", color: "var(--faint)", marginBottom: 2,
+    fontSize: 11,
+    fontWeight: 700,
+    letterSpacing: "0.08em",
+    textTransform: "uppercase",
+    color: "var(--faint)",
+    marginBottom: 2,
   },
   metaHint: { fontSize: 11, color: "var(--faint)", marginTop: 10 },
   empty: { fontSize: 13, color: "var(--faint)", padding: "10px 2px" },
-  footer: { marginTop: 32, fontSize: 12, color: "var(--faint)", textAlign: "center" },
+  footer: {
+    marginTop: 32,
+    fontSize: 12,
+    color: "var(--faint)",
+    textAlign: "center",
+  },
 };
