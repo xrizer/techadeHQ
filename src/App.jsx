@@ -571,22 +571,109 @@ export default function TechadeHQ() {
         {/* ===== FOKUS HARI INI ===== */}
         <div style={S.sectionHead}>Fokus hari ini</div>
 
-        {/* punya gue — selalu paling atas, bisa diedit */}
-        <div style={{ ...S.focusCard, marginBottom: 8 }}>
-          <div style={{ ...S.personName, color: "var(--accent)" }}>{me}</div>
-          <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
-            <input
-              style={{ ...S.input, flex: 1, minWidth: 0 }}
-              placeholder="Hari ini fokus ngerjain apa?"
-              value={myFocus}
-              onChange={(e) => setMyFocus(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && saveFocus()}
-            />
-            <button style={{ ...S.addBtn, width: 60 }} onClick={saveFocus}>
-              OK
-            </button>
-          </div>
-        </div>
+        {/* punya gue — selalu paling atas, bisa diedit + bisa dibuka profilnya */}
+        {(() => {
+          const myToday = focusLog.find(
+            (x) => x.user_id === session.user.id && x.date === today,
+          );
+          const openMe = openProfile === session.user.id;
+          const myHistory = focusLog
+            .filter((x) => x.user_id === session.user.id)
+            .slice(0, 7);
+          const myProjects = (projects || [])
+            .filter((p) => p.updated_by === me)
+            .slice(0, 3);
+          return (
+            <div style={{ ...S.focusCard, marginBottom: 8 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ ...S.personName, color: "var(--accent)" }}>
+                    {me}
+                  </div>
+                  {myToday?.text && (
+                    <div
+                      style={{ fontSize: 15, marginTop: 3, lineHeight: 1.4 }}
+                    >
+                      {myToday.text}
+                    </div>
+                  )}
+                </div>
+                <span
+                  style={{
+                    color: "var(--faint)",
+                    fontSize: 12,
+                    cursor: "pointer",
+                  }}
+                  onClick={() =>
+                    setOpenProfile(openMe ? null : session.user.id)
+                  }
+                >
+                  {openMe ? "tutup ▴" : "profil ▾"}
+                </span>
+              </div>
+              <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
+                <input
+                  style={{ ...S.input, flex: 1, minWidth: 0 }}
+                  placeholder={
+                    myToday?.text
+                      ? "Ganti fokus hari ini…"
+                      : "Hari ini fokus ngerjain apa?"
+                  }
+                  value={myFocus}
+                  onChange={(e) => setMyFocus(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && saveFocus()}
+                />
+                <button style={{ ...S.addBtn, width: 60 }} onClick={saveFocus}>
+                  OK
+                </button>
+              </div>
+              {openMe && (
+                <div
+                  style={{
+                    marginTop: 12,
+                    borderTop: "1px solid var(--accent-border)",
+                    paddingTop: 10,
+                  }}
+                >
+                  <div style={S.fieldLabel}>Riwayat fokus</div>
+                  {myHistory.length === 0 && (
+                    <div style={S.empty}>Belum ada.</div>
+                  )}
+                  {myHistory.map((h) => (
+                    <div
+                      key={h.id || h.date}
+                      style={{ fontSize: 13, lineHeight: 1.6 }}
+                    >
+                      <span style={{ color: "var(--faint)" }}>
+                        {h.date === today ? "hari ini" : h.date}
+                      </span>{" "}
+                      — {h.text || "—"}
+                    </div>
+                  ))}
+                  {myProjects.length > 0 && (
+                    <>
+                      <div style={{ ...S.fieldLabel, marginTop: 10 }}>
+                        Project yang terakhir lu pegang
+                      </div>
+                      {myProjects.map((p) => (
+                        <div
+                          key={p.id}
+                          style={{ fontSize: 13, lineHeight: 1.6 }}
+                        >
+                          <b>{p.name}</b>
+                          <span style={{ color: "var(--faint)" }}>
+                            {" "}
+                            · {timeAgo(p.updated_at)}
+                          </span>
+                        </div>
+                      ))}
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })()}
 
         {/* founder lain */}
         {others.map((f) => {
