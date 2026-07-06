@@ -275,7 +275,7 @@ function Login({ themeVars }) {
               boxSizing: "border-box",
               marginBottom: 12,
             }}
-            placeholder="Invite code (minta ke Sol)"
+            placeholder="Invite code"
             value={invite}
             onChange={(e) => setInvite(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && submit()}
