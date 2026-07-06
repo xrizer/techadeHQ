@@ -308,7 +308,8 @@ function Login({ themeVars }) {
 export default function TechadeHQ() {
   const [session, setSession] = useState(undefined);
   const [projects, setProjects] = useState(null);
-  const [focuses, setFocuses] = useState([]);
+  const [focusLog, setFocusLog] = useState([]);
+  const [openProfile, setOpenProfile] = useState(null); // user_id yang profilnya dibuka
   const [myFocus, setMyFocus] = useState("");
   const [newProject, setNewProject] = useState("");
   const [error, setError] = useState(null);
@@ -366,11 +367,17 @@ export default function TechadeHQ() {
     }
     setProjects(p.data);
 
-    const f = await supabase.from("focus").select("*");
+    const f = await supabase
+      .from("focus_log")
+      .select("*")
+      .order("date", { ascending: false })
+      .limit(300);
     if (!f.error) {
-      setFocuses(f.data);
-      const mine = f.data.find((x) => x.user_id === s.user.id);
-      if (mine && mine.date === localToday()) setMyFocus(mine.text || "");
+      setFocusLog(f.data);
+      const mine = f.data.find(
+        (x) => x.user_id === s.user.id && x.date === localToday(),
+      );
+      if (mine) setMyFocus(mine.text || "");
     }
   };
 
@@ -387,11 +394,13 @@ export default function TechadeHQ() {
       text,
       date: localToday(),
     };
-    setFocuses((fs) => [
-      ...fs.filter((x) => x.user_id !== session.user.id),
+    setFocusLog((fs) => [
       row,
+      ...fs.filter((x) => !(x.user_id === row.user_id && x.date === row.date)),
     ]);
-    await supabase.from("focus").upsert(row);
+    await supabase
+      .from("focus_log")
+      .upsert(row, { onConflict: "user_id,date" });
   };
 
   // ---------- projects ----------
@@ -492,7 +501,12 @@ export default function TechadeHQ() {
     month: "long",
   });
 
-  const others = focuses
+  // entri terbaru per founder (log udah urut date desc)
+  const latestByUser = {};
+  for (const f of focusLog) {
+    if (!latestByUser[f.user_id]) latestByUser[f.user_id] = f;
+  }
+  const others = Object.values(latestByUser)
     .filter((f) => f.user_id !== session.user.id)
     .sort((a, b) => (a.name < b.name ? -1 : 1));
 
@@ -577,24 +591,91 @@ export default function TechadeHQ() {
         {/* founder lain */}
         {others.map((f) => {
           const stale = f.date !== today;
+          const open = openProfile === f.user_id;
+          const history = focusLog
+            .filter((x) => x.user_id === f.user_id)
+            .slice(0, 7);
+          const theirProjects = (projects || [])
+            .filter((p) => p.updated_by === f.name)
+            .slice(0, 3);
           return (
             <div
               key={f.user_id}
-              style={{ ...S.card, ...(stale ? { opacity: 0.5 } : {}) }}
+              style={{
+                ...S.card,
+                display: "block",
+                cursor: "pointer",
+                ...(stale && !open ? { opacity: 0.6 } : {}),
+              }}
+              onClick={() => setOpenProfile(open ? null : f.user_id)}
             >
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={S.personName}>{f.name}</div>
-                <div style={{ fontSize: 15, marginTop: 3, lineHeight: 1.4 }}>
-                  {f.text || (
-                    <span style={{ color: "var(--faint)" }}>belum diisi</span>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={S.personName}>{f.name}</div>
+                  <div style={{ fontSize: 15, marginTop: 3, lineHeight: 1.4 }}>
+                    {stale ? (
+                      <span style={{ color: "var(--faint)" }}>
+                        belum isi hari ini
+                      </span>
+                    ) : (
+                      f.text || (
+                        <span style={{ color: "var(--faint)" }}>
+                          belum diisi
+                        </span>
+                      )
+                    )}
+                  </div>
+                </div>
+                <span style={{ color: "var(--faint)", fontSize: 12 }}>
+                  {open ? "tutup ▴" : "profil ▾"}
+                </span>
+              </div>
+
+              {open && (
+                <div
+                  style={{
+                    marginTop: 12,
+                    borderTop: "1px solid var(--border)",
+                    paddingTop: 10,
+                  }}
+                >
+                  <div style={S.fieldLabel}>Riwayat fokus</div>
+                  {history.length === 0 && (
+                    <div style={S.empty}>Belum pernah isi fokus.</div>
+                  )}
+                  {history.map((h) => (
+                    <div
+                      key={h.id || h.date}
+                      style={{ fontSize: 13, lineHeight: 1.6 }}
+                    >
+                      <span style={{ color: "var(--faint)" }}>
+                        {h.date === today ? "hari ini" : h.date}
+                      </span>{" "}
+                      — {h.text || "—"}
+                    </div>
+                  ))}
+
+                  {theirProjects.length > 0 && (
+                    <>
+                      <div style={{ ...S.fieldLabel, marginTop: 10 }}>
+                        Project yang terakhir dia pegang
+                      </div>
+                      {theirProjects.map((p) => (
+                        <div
+                          key={p.id}
+                          style={{ fontSize: 13, lineHeight: 1.6 }}
+                        >
+                          <b>{p.name}</b>
+                          <span style={{ color: "var(--faint)" }}>
+                            {" "}
+                            · {timeAgo(p.updated_at)}
+                          </span>
+                        </div>
+                      ))}
+                    </>
                   )}
                 </div>
-                {stale && f.date && (
-                  <div style={S.metaHint}>
-                    terakhir update {f.date} — belum isi hari ini
-                  </div>
-                )}
-              </div>
+              )}
             </div>
           );
         })}
