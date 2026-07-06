@@ -433,11 +433,11 @@ export default function TechadeHQ() {
 
         {/* punya gue — selalu paling atas, bisa diedit */}
         <div style={{ ...S.focusCard, marginBottom: 8 }}>
-          <div style={{ ...S.personName, color: "var(--accent)" }}>{me} (lu)</div>
+          <div style={{ ...S.personName, color: "var(--accent)" }}>{me}</div>
           <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
             <input
               style={{ ...S.input, flex: 1, minWidth: 0 }}
-              placeholder="Hari ini lu fokus ngerjain apa?"
+              placeholder="Hari ini fokus ngerjain apa?"
               value={myFocus}
               onChange={(e) => setMyFocus(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && saveFocus()}
