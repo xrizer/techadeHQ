@@ -882,11 +882,6 @@ export default function TechadeHQ() {
             Belum ada project. Tambahin yang lagi jalan.
           </div>
         )}
-
-        <div style={S.footer}>
-          Update "sampe mana" & "next step" tiap ada progres — biar gak ada yang
-          nanya-nanya lagi.
-        </div>
       </div>
     </div>
   );
