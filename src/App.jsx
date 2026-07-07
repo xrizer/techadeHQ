@@ -389,8 +389,8 @@ export default function TechadeHQ() {
   }, [session]);
 
   // ---------- fokus ----------
-  const saveFocus = async () => {
-    const text = myFocus.trim();
+  const saveFocus = async (value) => {
+    const text = (value != null ? value : myFocus).trim();
     const row = {
       user_id: session.user.id,
       name: usernameOf(session),
@@ -600,13 +600,15 @@ export default function TechadeHQ() {
                   <div style={{ ...S.personName, color: "var(--accent)" }}>
                     {me}
                   </div>
-                  {myToday?.text && (
-                    <div
-                      style={{ fontSize: 15, marginTop: 3, lineHeight: 1.4 }}
-                    >
-                      {myToday.text}
-                    </div>
-                  )}
+                  <EditableText
+                    value={myToday?.text || ""}
+                    onSave={(v) => {
+                      setMyFocus(v);
+                      saveFocus(v);
+                    }}
+                    placeholder="tap buat isi fokus hari ini…"
+                    style={{ fontSize: 15, marginTop: 3, lineHeight: 1.4 }}
+                  />
                 </div>
                 <span
                   style={{
@@ -620,22 +622,6 @@ export default function TechadeHQ() {
                 >
                   {openMe ? "tutup ▴" : "profil ▾"}
                 </span>
-              </div>
-              <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
-                <input
-                  style={{ ...S.input, flex: 1, minWidth: 0 }}
-                  placeholder={
-                    myToday?.text
-                      ? "Ganti fokus hari ini…"
-                      : "Hari ini fokus ngerjain apa?"
-                  }
-                  value={myFocus}
-                  onChange={(e) => setMyFocus(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && saveFocus()}
-                />
-                <button style={{ ...S.addBtn, width: 60 }} onClick={saveFocus}>
-                  OK
-                </button>
               </div>
               {openMe && (
                 <div
