@@ -9,7 +9,7 @@ const localToday = () => {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 };
 
-const STATUS_ORDER = ["penawaran", "deal", "maintenance"];
+const STATUS_ORDER = ["penawaran", "deal", "support"];
 const STATUS_META = {
   penawaran: {
     label: "◐ penawaran",
@@ -21,8 +21,14 @@ const STATUS_META = {
     color: "var(--green)",
     border: "var(--green-border)",
   },
+  support: {
+    label: "🔧 support",
+    color: "var(--muted2)",
+    border: "var(--border2)",
+  },
+  // fallback buat data lama
   maintenance: {
-    label: "🔧 maintenance",
+    label: "🔧 support",
     color: "var(--muted2)",
     border: "var(--border2)",
   },
@@ -520,7 +526,7 @@ export default function TechadeHQ() {
       .reduce((s, p) => s + Number(p.revenue), 0);
   const sumDeal = sumBy("deal");
   const sumPenawaran = sumBy("penawaran");
-  const sumMaint = sumBy("maintenance");
+  const sumMaint = sumBy("support") + sumBy("maintenance");
 
   return (
     <div style={{ ...S.page, ...themeVars }}>
@@ -777,7 +783,7 @@ export default function TechadeHQ() {
             {[
               sumDeal > 0 && `deal ${rupiah(sumDeal)}`,
               sumPenawaran > 0 && `penawaran ${rupiah(sumPenawaran)}`,
-              sumMaint > 0 && `maintenance ${rupiah(sumMaint)}`,
+              sumMaint > 0 && `support ${rupiah(sumMaint)}`,
             ]
               .filter(Boolean)
               .join(" · ")}
