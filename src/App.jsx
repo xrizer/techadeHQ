@@ -39,6 +39,9 @@ const timeAgo = (ts) => {
   return `${d} hari lalu`;
 };
 
+const rupiah = (n) =>
+  n == null ? "" : "Rp" + Number(n).toLocaleString("id-ID");
+
 const usernameOf = (session) =>
   (session?.user?.email || "").split("@")[0] || "anon";
 
@@ -511,6 +514,13 @@ export default function TechadeHQ() {
     .sort((a, b) => (a.name < b.name ? -1 : 1));
 
   const sorted = projects || [];
+  const sumBy = (st) =>
+    sorted
+      .filter((p) => p.status === st && p.revenue)
+      .reduce((s, p) => s + Number(p.revenue), 0);
+  const sumDeal = sumBy("deal");
+  const sumPenawaran = sumBy("penawaran");
+  const sumMaint = sumBy("maintenance");
 
   return (
     <div style={{ ...S.page, ...themeVars }}>
@@ -682,6 +692,9 @@ export default function TechadeHQ() {
           const history = focusLog
             .filter((x) => x.user_id === f.user_id)
             .slice(0, 7);
+          const theirProjects = (projects || [])
+            .filter((p) => p.updated_by === f.name)
+            .slice(0, 3);
           return (
             <div
               key={f.user_id}
@@ -738,6 +751,26 @@ export default function TechadeHQ() {
                       — {h.text || "—"}
                     </div>
                   ))}
+
+                  {theirProjects.length > 0 && (
+                    <>
+                      <div style={{ ...S.fieldLabel, marginTop: 10 }}>
+                        Project yang terakhir dia pegang
+                      </div>
+                      {theirProjects.map((p) => (
+                        <div
+                          key={p.id}
+                          style={{ fontSize: 13, lineHeight: 1.6 }}
+                        >
+                          <b>{p.name}</b>
+                          <span style={{ color: "var(--faint)" }}>
+                            {" "}
+                            · {timeAgo(p.updated_at)}
+                          </span>
+                        </div>
+                      ))}
+                    </>
+                  )}
                 </div>
               )}
             </div>
@@ -748,7 +781,22 @@ export default function TechadeHQ() {
         )}
 
         {/* ===== PROJECTS ===== */}
-        <div style={{ ...S.sectionHead, marginTop: 30 }}>Projects</div>
+        <div style={{ ...S.sectionHead, marginTop: 30, marginBottom: 4 }}>
+          Projects
+        </div>
+        {(sumDeal > 0 || sumPenawaran > 0 || sumMaint > 0) && (
+          <div
+            style={{ fontSize: 12, color: "var(--faint)", marginBottom: 10 }}
+          >
+            {[
+              sumDeal > 0 && `deal ${rupiah(sumDeal)}`,
+              sumPenawaran > 0 && `penawaran ${rupiah(sumPenawaran)}`,
+              sumMaint > 0 && `maintenance ${rupiah(sumMaint)}`,
+            ]
+              .filter(Boolean)
+              .join(" · ")}
+          </div>
+        )}
 
         <div style={{ display: "flex", gap: 6, marginBottom: 12 }}>
           <input
@@ -809,6 +857,19 @@ export default function TechadeHQ() {
                 />
               </div>
 
+              <div style={{ marginTop: 8 }}>
+                <div style={S.fieldLabel}>Revenue</div>
+                <EditableText
+                  value={p.revenue != null ? rupiah(p.revenue) : ""}
+                  onSave={(v) => {
+                    const n = parseInt(v.replace(/\D/g, ""), 10);
+                    patchProject(p.id, { revenue: isNaN(n) ? null : n });
+                  }}
+                  placeholder="tap buat isi…"
+                  style={{ fontSize: 14, fontWeight: 700 }}
+                />
+              </div>
+
               <div style={S.metaHint}>
                 update {timeAgo(p.updated_at)}
                 {p.updated_by ? ` · ${p.updated_by}` : ""}
@@ -821,6 +882,11 @@ export default function TechadeHQ() {
             Belum ada project. Tambahin yang lagi jalan.
           </div>
         )}
+
+        <div style={S.footer}>
+          Update "sampe mana" & "next step" tiap ada progres — biar gak ada yang
+          nanya-nanya lagi.
+        </div>
       </div>
     </div>
   );
