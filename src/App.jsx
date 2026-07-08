@@ -558,6 +558,14 @@ export default function TechadeHQ() {
     .sort((a, b) => (a.name < b.name ? -1 : 1));
 
   const sorted = projects || [];
+
+  const founderNames = Array.from(
+    new Set([
+      me,
+      ...focusLog.map((f) => f.name),
+      ...(tasks || []).map((t) => t.assignee).filter(Boolean),
+    ]),
+  ).sort();
   const sumBy = (st) =>
     sorted
       .filter((p) => p.status === st && p.revenue)
