@@ -321,6 +321,9 @@ export default function TechadeHQ() {
   const [openProfile, setOpenProfile] = useState(null); // user_id yang profilnya dibuka
   const [myFocus, setMyFocus] = useState("");
   const [newProject, setNewProject] = useState("");
+  const [tasks, setTasks] = useState(null);
+  const [newTask, setNewTask] = useState("");
+  const [newAssignee, setNewAssignee] = useState(null);
   const [error, setError] = useState(null);
   const [dark, setDark] = useState(() => {
     try {
@@ -376,6 +379,12 @@ export default function TechadeHQ() {
     }
     setProjects(p.data);
 
+    const t = await supabase
+      .from("team_tasks")
+      .select("*")
+      .order("updated_at", { ascending: false });
+    if (!t.error) setTasks(t.data);
+
     const f = await supabase
       .from("focus_log")
       .select("*")
@@ -410,6 +419,35 @@ export default function TechadeHQ() {
     await supabase
       .from("focus_log")
       .upsert(row, { onConflict: "user_id,date" });
+  };
+
+  // ---------- team tasks ----------
+  const addTask = async () => {
+    const title = newTask.trim();
+    if (!title) return;
+    const assignee = newAssignee || usernameOf(session);
+    setNewTask("");
+    const { data, error } = await supabase
+      .from("team_tasks")
+      .insert({ title, assignee, created_by: usernameOf(session) })
+      .select()
+      .single();
+    if (error) {
+      setError(error.message);
+      return;
+    }
+    setTasks((ts) => [data, ...ts]);
+  };
+
+  const patchTask = async (id, patch) => {
+    const withMeta = { ...patch, updated_at: new Date().toISOString() };
+    setTasks((ts) => ts.map((t) => (t.id === id ? { ...t, ...withMeta } : t)));
+    await supabase.from("team_tasks").update(withMeta).eq("id", id);
+  };
+
+  const removeTask = async (id) => {
+    setTasks((ts) => ts.filter((t) => t.id !== id));
+    await supabase.from("team_tasks").delete().eq("id", id);
   };
 
   // ---------- projects ----------
@@ -772,6 +810,146 @@ export default function TechadeHQ() {
           <div style={S.empty}>Founder lain belum pernah isi fokus.</div>
         )}
 
+        {/* ===== TASKS ===== */}
+        <div style={{ ...S.sectionHead, marginTop: 30 }}>Tasks</div>
+
+        <div style={{ display: "flex", gap: 6, marginBottom: 6 }}>
+          <input
+            style={{ ...S.input, flex: 1, minWidth: 0 }}
+            placeholder="Task baru…"
+            value={newTask}
+            onChange={(e) => setNewTask(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && addTask()}
+          />
+          <button style={{ ...S.addBtn, width: 46 }} onClick={addTask}>
+            +
+          </button>
+        </div>
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: 6,
+            marginBottom: 12,
+            alignItems: "center",
+          }}
+        >
+          <span style={{ fontSize: 12, color: "var(--faint)" }}>buat:</span>
+          {founderNames.map((n) => (
+            <button
+              key={n}
+              style={{
+                ...S.ghostSm,
+                fontWeight: 700,
+                ...((newAssignee || me) === n
+                  ? { borderColor: "var(--accent)", color: "var(--accent)" }
+                  : {}),
+              }}
+              onClick={() => setNewAssignee(n)}
+            >
+              {n}
+            </button>
+          ))}
+        </div>
+
+        {tasks === null && <div style={S.empty}>Memuat…</div>}
+        {tasks !== null && tasks.length === 0 && (
+          <div style={S.empty}>Belum ada task.</div>
+        )}
+        {(tasks || [])
+          .slice()
+          .sort((a, b) => {
+            const order = { inprogress: 0, todo: 1, done: 2 };
+            return (order[a.status] ?? 1) - (order[b.status] ?? 1);
+          })
+          .map((t) => {
+            const mine = t.assignee === me;
+            return (
+              <div
+                key={t.id}
+                style={{
+                  ...S.card,
+                  ...(t.status === "done" ? { opacity: 0.5 } : {}),
+                  ...(mine && t.status !== "done"
+                    ? { borderLeft: "3px solid var(--accent)" }
+                    : {}),
+                }}
+              >
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <EditableText
+                    value={t.title}
+                    onSave={(v) => v && patchTask(t.id, { title: v })}
+                    style={{
+                      fontSize: 15,
+                      fontWeight: 500,
+                      ...(t.status === "done"
+                        ? { textDecoration: "line-through" }
+                        : {}),
+                    }}
+                  />
+                  <div style={{ ...S.metaHint, marginTop: 3 }}>
+                    <span
+                      style={{
+                        cursor: "pointer",
+                        fontWeight: 700,
+                        color: mine ? "var(--accent)" : "var(--muted2)",
+                      }}
+                      title="Klik buat oper ke founder lain"
+                      onClick={() => {
+                        const i = founderNames.indexOf(t.assignee);
+                        const next =
+                          founderNames[(i + 1) % founderNames.length];
+                        patchTask(t.id, { assignee: next });
+                      }}
+                    >
+                      @{t.assignee || "?"}
+                    </span>
+                    {t.created_by &&
+                      t.created_by !== t.assignee &&
+                      ` · dari ${t.created_by}`}
+                  </div>
+                </div>
+                <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+                  {t.status === "todo" && (
+                    <button
+                      style={{
+                        ...S.pill,
+                        color: "var(--janji-ink)",
+                        borderColor: "var(--janji-border)",
+                      }}
+                      onClick={() => patchTask(t.id, { status: "inprogress" })}
+                    >
+                      mulai
+                    </button>
+                  )}
+                  {t.status === "inprogress" && (
+                    <button
+                      style={{
+                        ...S.pill,
+                        color: "var(--green)",
+                        borderColor: "var(--green-border)",
+                      }}
+                      onClick={() => patchTask(t.id, { status: "done" })}
+                    >
+                      selesai ✓
+                    </button>
+                  )}
+                  {t.status === "done" && (
+                    <button
+                      style={S.ghostSm}
+                      onClick={() => patchTask(t.id, { status: "todo" })}
+                    >
+                      ↩
+                    </button>
+                  )}
+                  <button style={S.ghostSm} onClick={() => removeTask(t.id)}>
+                    ✕
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+
         {/* ===== PROJECTS ===== */}
         <div style={{ ...S.sectionHead, marginTop: 30, marginBottom: 4 }}>
           Projects
@@ -874,6 +1052,11 @@ export default function TechadeHQ() {
             Belum ada project. Tambahin yang lagi jalan.
           </div>
         )}
+
+        <div style={S.footer}>
+          Update "sampe mana" & "next step" tiap ada progres — biar gak ada yang
+          nanya-nanya lagi.
+        </div>
       </div>
     </div>
   );
